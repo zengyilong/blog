@@ -1,11 +1,10 @@
 from app import create_app
 from app.models import init_db
+from flask.ext.bootstrap import Bootstrap
+
 
 app = create_app()
-
-def testprint():
-    print "print..."
-
+bootstrap = Bootstrap(app)
 
 if __name__ == '__main__':
     init_db(app)
