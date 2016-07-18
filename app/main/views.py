@@ -1,7 +1,6 @@
 from . import main
 from flask import g,render_template,flash,session,abort,request,redirect,url_for
 from ..models import connect_db
-# from runapp import app
 import runapp
 
 @main.before_request
