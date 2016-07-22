@@ -1,6 +1,6 @@
 from app import create_app
 from app.models import init_db
-from flask.ext.bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap
 
 
 app = create_app()
