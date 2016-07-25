@@ -1,11 +1,11 @@
 from . import main
 from flask import g,render_template,flash,session,abort,request,redirect,url_for
-from ..models import connect_db
-import runapp
+from ..models import User,Entry,db
+
 
 @main.before_request
 def before_request():
-    g.db = connect_db(runapp.app.config['DATABASE'])
+    pass
 
 
 @main.teardown_request
@@ -17,8 +17,9 @@ def teardown_request(exception):
 
 @main.route('/')
 def show_entries():
-    cur = g.db.execute('select title, text from entries order by id desc')
-    entries = [dict(title=row[0], text=row[1]) for row in cur.fetchall()]
+    test = Entry.query.all()
+    print test
+    entries = Entry.query.all()
     return render_template('show_entries.html', entries=entries)
 
 
@@ -26,9 +27,9 @@ def show_entries():
 def add_entry():
     if not session.get('logged_in'):
         abort(401)
-    g.db.execute('insert into entries (title, text) values (?, ?)',
-                 [request.form['title'], request.form['text']])
-    g.db.commit()
+    newentry = Entry(title=request.form['title'], text=request.form['text'])
+    db.session.add_all([newentry])
+    db.session.commit()
     flash('New entry was successfully posted')
     return redirect(url_for('main.show_entries'))
 
@@ -37,9 +38,10 @@ def add_entry():
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != runapp.app.config['USERNAME']:
+        user = User.query.filter_by(username='admin').first()
+        if user == None:
             error = 'Invalid username'
-        elif request.form['password'] != runapp.app.config['PASSWORD']:
+        elif request.form['password'] != user.password:
             error = 'Invalid password'
         else:
             session['logged_in'] = True
