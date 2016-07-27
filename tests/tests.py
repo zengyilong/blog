@@ -1,36 +1,61 @@
 # -*- coding:utf-8 -*-
-import os
-import runapp
+from flask import current_app
+from app import db, create_app
 import unittest
 import tempfile
 
 
-class FlaskrTestCase(unittest.TestCase):
+class BolgTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.db_fd, runapp.app.config['DATABASE'] = tempfile.mkstemp()
-        runapp.app.config['TESTING'] = True
-        self.app = runapp.app.test_client()
-        runapp.init_db(runapp.app)
+        #self.db_fd, runapp.app.config['DATABASE'] = tempfile.mkstemp()
+        # self.app = runapp.app.test_client()
+        # runapp.init_db(runapp.app)
+        # app = create_app()
+        # app.config['TESTING'] = True
+        # db.drop_all()
+        # db.init_app(app)
+        # db.create_all()
+        self.app = create_app()
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        self.app.config['TESTING'] = True
+        self.client = self.app.test_client()
+        db.create_all()
+
 
     def tearDown(self):
-        os.close(self.db_fd)
-        os.unlink(runapp.app.config['DATABASE'])
+        # os.close(self.db_fd)
+        # os.unlink(runapp.app.config['DATABASE'])
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
+
+
+    # 测试应用成功启动
+    def test_app_exists(self):
+        self.assertFalse(current_app is None)
+
+    # 测试应用是否为测试状态
+    def test_app_is_testing(self):
+        self.assertTrue(current_app.config['TESTING'])
+
 
     # 访问应用根节点应出现 “No entries here so far”
     def test_empty_db(self):
-        rv = self.app.get('/')
+        rv = self.client.get('/')
         assert 'No entries here so far' in rv.data
 
     def login(self, username, password):
-         return self.app.post('/login', data=dict(username=username,password=password),
+         return self.client.post('/login', data=dict(username=username,password=password),
                               follow_redirects=True)
 
     def logout(self):
-        return self.app.get('/logout', follow_redirects=True)
+        return self.client.get('/logout', follow_redirects=True)
 
     # 测试登录及日志输入输出
-    def test_login_logout(self):
+    def t_est_login_logout(self):
         rv = self.login('admin', '123456')
         assert 'You were logged in' in rv.data
         rv = self.logout()
@@ -41,7 +66,7 @@ class FlaskrTestCase(unittest.TestCase):
         assert 'Invalid password' in rv.data
 
     # 测试添加功能
-    def test_messages(self):
+    def t_est_messages(self):
         self.login('admin', '123456')
         rv = self.app.post('/add', data=dict(
             title='<Hello>',

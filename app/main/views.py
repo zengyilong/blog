@@ -10,10 +10,7 @@ def before_request():
 
 @main.teardown_request
 def teardown_request(exception):
-    db = getattr(g, 'db', None)
-    if db is not None:
-        db.close()
-
+    pass
 
 @main.route('/')
 def show_entries():
